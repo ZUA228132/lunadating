@@ -20,12 +20,13 @@ export default function HomePage() {
     if (tg && tg.WebApp) {
       // Running inside Telegram.  Attempt to use initData; if it's empty, instruct user to open via bot link.
       const initData = tg.WebApp.initData;
+      const userUnsafe = tg.WebApp.initDataUnsafe?.user;
       if (initData && initData.length > 0) {
         setStatus('processing');
         fetch('/api/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData }),
+          body: JSON.stringify({ initData, userUnsafe }),
         })
           .then((res) => res.json())
           .then((json) => {
@@ -40,8 +41,29 @@ export default function HomePage() {
             console.error(err);
             setStatus('noInitData');
           });
+      } else if (userUnsafe && userUnsafe.id) {
+        // When initData is empty, but user data is available unsafely, attempt to create the user anyway.
+        setStatus('processing');
+        fetch('/api/init', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: '', userUnsafe }),
+        })
+          .then((res) => res.json())
+          .then((json) => {
+            if (json.success) {
+              router.replace('/dashboard');
+            } else {
+              console.error('unsafe initData failed', json);
+              setStatus('noInitData');
+            }
+          })
+          .catch((err) => {
+            console.error(err);
+            setStatus('noInitData');
+          });
       } else {
-        // Inside Telegram but no initData present (likely launched incorrectly).
+        // Inside Telegram but neither initData nor unsafe user is available
         setStatus('noInitData');
       }
     } else {

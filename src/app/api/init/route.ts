@@ -13,21 +13,24 @@ import { getSupabaseClient } from '@/lib/supabaseClient';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const initData: string | undefined = body?.initData;
-    if (!initData || typeof initData !== 'string') {
-      return NextResponse.json({ error: 'initData missing' }, { status: 400 });
+    const initData: string | undefined = typeof body.initData === 'string' ? body.initData : undefined;
+    const unsafeUser: any = body.userUnsafe;
+    let user: any = null;
+    // If initData is provided, attempt to validate it and extract the user.
+    if (initData && initData.length > 0) {
+      const data = parseTelegramInitData(initData);
+      if (verifyTelegramInitData(data)) {
+        try {
+          user = JSON.parse(data.user);
+        } catch (e) {
+          // fallback to unsafe user if provided
+          user = unsafeUser;
+        }
+      }
     }
-    const data = parseTelegramInitData(initData);
-    if (!verifyTelegramInitData(data)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
-    }
-    // Parse the user JSON from the `user` field.  It is passed as a JSON‑serialized
-    // object within the querystring (see https://core.telegram.org/bots/webapps#webappinitdata).
-    let user: any;
-    try {
-      user = JSON.parse(data.user);
-    } catch (e) {
-      return NextResponse.json({ error: 'Invalid user data' }, { status: 400 });
+    // If user was not extracted via verified initData, fall back to unsafe user.
+    if (!user && unsafeUser) {
+      user = unsafeUser;
     }
     if (!user || !user.id) {
       return NextResponse.json({ error: 'User not found' }, { status: 400 });
