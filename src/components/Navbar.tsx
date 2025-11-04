@@ -34,42 +34,43 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="border-b border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-50">
+    <nav className="border-b border-[var(--border-color)] bg-[var(--card-bg)] sticky top-0 z-40">
       <div className="container px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[var(--primary)]">
-            DatingBot
-          </Link>
-        <ul className="nav-links text-sm font-medium">
+        <Link href="/" className="text-xl font-bold text-[var(--primary)]">
+          DatingBot
+        </Link>
+        {/* Desktop navigation links; hidden on small screens in favour of bottom nav */}
+        <ul className="hidden md:flex items-center space-x-6 text-sm font-medium list-none">
+          <li>
+            <Link href="/dashboard" className="hover:text-[var(--primary-hover)]">
+              Профиль
+            </Link>
+          </li>
+          <li>
+            <Link href="/swipe" className="hover:text-[var(--primary-hover)]">
+              Свайпы
+            </Link>
+          </li>
+          <li>
+            <Link href="/settings" className="hover:text-[var(--primary-hover)]">
+              Настройки
+            </Link>
+          </li>
+          {user?.role === 'admin' && (
             <li>
-              <Link href="/dashboard" className="hover:text-[var(--primary-hover)]">
-                Профиль
+              <Link href="/admin" className="hover:text-[var(--primary-hover)]">
+                Админка
               </Link>
             </li>
+          )}
+          {(user?.role === 'admin' || user?.role === 'support') && (
             <li>
-              <Link href="/swipe" className="hover:text-[var(--primary-hover)]">
-                Свайпы
+              <Link href="/support" className="hover:text-[var(--primary-hover)]">
+                Поддержка
               </Link>
             </li>
-            <li>
-              <Link href="/settings" className="hover:text-[var(--primary-hover)]">
-                Настройки
-              </Link>
-            </li>
-            {user?.role === 'admin' && (
-              <li>
-                <Link href="/admin" className="hover:text-[var(--primary-hover)]">
-                  Админка
-                </Link>
-              </li>
-            )}
-            {(user?.role === 'admin' || user?.role === 'support') && (
-              <li>
-                <Link href="/support" className="hover:text-[var(--primary-hover)]">
-                  Поддержка
-                </Link>
-              </li>
-            )}
-          </ul>
+          )}
+        </ul>
       </div>
     </nav>
   );
