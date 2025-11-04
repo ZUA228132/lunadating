@@ -49,3 +49,45 @@ export function getTelegramUserFromQuery(query: URLSearchParams) {
     photo_url: data.photo_url
   };
 }
+
+/**
+ * Parses the initData querystring provided by Telegram Web Apps.  This string
+ * contains URL‑encoded key/value pairs (e.g. `auth_date=...&user=...&hash=...`).
+ */
+export function parseTelegramInitData(initData: string) {
+  const params = new URLSearchParams(initData);
+  const data: Record<string, string> = {};
+  params.forEach((value, key) => {
+    data[key] = value;
+  });
+  return data;
+}
+
+/**
+ * Verifies the authenticity of data passed via the Telegram Web App initData field.
+ *
+ * According to the official documentation, developers must compute a
+ * "data‑check string" by concatenating all received fields sorted
+ * alphabetically (except the hash itself) with a newline separator, then
+ * calculate an HMAC‑SHA256 signature of this string using a secret key
+ * derived from the bot token.  If the resulting hex digest matches the
+ * received `hash`, the data comes from Telegram and can be trusted.
+ * See: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+ */
+export function verifyTelegramInitData(data: Record<string, string>) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) throw new Error('Missing TELEGRAM_BOT_TOKEN');
+  const receivedHash = data.hash;
+  if (!receivedHash) return false;
+  // Remove the hash field and sort keys alphabetically
+  const sorted = Object.keys(data)
+    .filter((key) => key !== 'hash' && key !== 'signature')
+    .sort()
+    .map((key) => `${key}=${data[key]}`)
+    .join('\n');
+  // Derive secret key: HMAC_SHA256(bot_token, "WebAppData")
+  const secretKey = createHmac('sha256', 'WebAppData').update(botToken).digest();
+  // Compute HMAC of the data-check-string using the secret key
+  const signature = createHmac('sha256', secretKey).update(sorted).digest('hex');
+  return signature === receivedHash;
+}

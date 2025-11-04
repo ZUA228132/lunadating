@@ -96,3 +96,12 @@ td {
 .btn-success:hover {
   background-color: #15803d;
 }
+
+/* Navigation link spacing */
+.nav-links {
+  display: flex;
+  align-items: center;
+}
+.nav-links > li + li {
+  margin-left: 1rem;
+}

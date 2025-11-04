@@ -39,27 +39,37 @@ export default function Navbar() {
           <Link href="/" className="text-xl font-bold text-[var(--primary)]">
             DatingBot
           </Link>
-          <div className="flex items-center gap-4 text-sm font-medium">
-            <Link href="/dashboard" className="hover:text-[var(--primary-hover)]">
-              Профиль
-            </Link>
-            <Link href="/swipe" className="hover:text-[var(--primary-hover)]">
-              Свайпы
-            </Link>
-            <Link href="/settings" className="hover:text-[var(--primary-hover)]">
-              Настройки
-            </Link>
-            {user?.role === 'admin' && (
-              <Link href="/admin" className="hover:text-[var(--primary-hover)]">
-                Админка
+        <ul className="nav-links text-sm font-medium">
+            <li>
+              <Link href="/dashboard" className="hover:text-[var(--primary-hover)]">
+                Профиль
               </Link>
+            </li>
+            <li>
+              <Link href="/swipe" className="hover:text-[var(--primary-hover)]">
+                Свайпы
+              </Link>
+            </li>
+            <li>
+              <Link href="/settings" className="hover:text-[var(--primary-hover)]">
+                Настройки
+              </Link>
+            </li>
+            {user?.role === 'admin' && (
+              <li>
+                <Link href="/admin" className="hover:text-[var(--primary-hover)]">
+                  Админка
+                </Link>
+              </li>
             )}
             {(user?.role === 'admin' || user?.role === 'support') && (
-              <Link href="/support" className="hover:text-[var(--primary-hover)]">
-                Поддержка
-              </Link>
+              <li>
+                <Link href="/support" className="hover:text-[var(--primary-hover)]">
+                  Поддержка
+                </Link>
+              </li>
             )}
-          </div>
+          </ul>
       </div>
     </nav>
   );
