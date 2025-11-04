@@ -16,39 +16,46 @@ export default function HomePage() {
   const [status, setStatus] = useState<'loading' | 'processing' | 'noInitData' | 'notTelegram'>('loading');
 
   useEffect(() => {
-    const tg: any = typeof window !== 'undefined' ? (window as any).Telegram : undefined;
-    if (tg) {
-      // Try to read initData or fallback user information regardless of environment.
-      const initData = tg.WebApp?.initData || '';
-      const userUnsafe = tg.WebApp?.initDataUnsafe?.user;
-      if (initData || userUnsafe) {
-        setStatus('processing');
-        fetch('/api/init', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData, userUnsafe }),
-        })
-          .then((res) => res.json())
-          .then((json) => {
-            if (json.success) {
-              router.replace('/dashboard');
-            } else {
-              console.error('initData verification failed', json);
-              setStatus('noInitData');
-            }
+    // Wait for Telegram object to appear.  In some environments it may be injected after a delay.
+    let attempts = 0;
+    const maxAttempts = 15; // ~3 seconds total
+    const interval = setInterval(() => {
+      const tg: any = typeof window !== 'undefined' ? (window as any).Telegram : undefined;
+      if (tg) {
+        clearInterval(interval);
+        const initData = tg.WebApp?.initData || '';
+        const userUnsafe = tg.WebApp?.initDataUnsafe?.user;
+        if (initData || userUnsafe) {
+          setStatus('processing');
+          fetch('/api/init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData, userUnsafe }),
           })
-          .catch((err) => {
-            console.error(err);
-            setStatus('noInitData');
-          });
-      } else {
-        // We couldn't extract any data from Telegram object
+            .then((res) => res.json())
+            .then((json) => {
+              if (json.success) {
+                router.replace('/dashboard');
+              } else {
+                console.error('initData verification failed', json);
+                setStatus('noInitData');
+              }
+            })
+            .catch((err) => {
+              console.error(err);
+              setStatus('noInitData');
+            });
+        } else {
+          // Telegram object exists but contains no auth data
+          setStatus('noInitData');
+        }
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
         setStatus('notTelegram');
       }
-    } else {
-      // window.Telegram is undefined (likely not in Telegram environment)
-      setStatus('notTelegram');
-    }
+      attempts++;
+    }, 200);
+    return () => clearInterval(interval);
   }, [router]);
 
   if (status === 'loading' || status === 'processing') {
