@@ -11,6 +11,7 @@ interface Ticket {
   author: string;
 }
 
+"use client";
 export default function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selected, setSelected] = useState<Ticket | null>(null);
@@ -137,6 +138,7 @@ export default function TicketList() {
         ) : (
           <p className="text-[var(--text)] opacity-70">Выберите тикет для просмотра.</p>
         )}
+      </div>
     </div>
   );
 }

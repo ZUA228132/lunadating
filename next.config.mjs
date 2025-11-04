@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    appDir: true,
-  },
+  experimental: {},
   images: {
     domains: ['images.unsplash.com', 'your-supabase-bucket-url.supabase.co'],
   },

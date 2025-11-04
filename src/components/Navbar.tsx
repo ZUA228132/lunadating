@@ -1,6 +1,7 @@
 /*
  * Navigation bar component.  Displays links based on user role.
  */
+"use client";
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getSupabaseClient } from '@/lib/supabaseClient';
